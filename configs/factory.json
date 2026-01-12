@@ -1,0 +1,42 @@
+{
+  "HS0010": {
+    "name": "HS0010",
+    "supervisor": "Mr. Nam",
+    "devices": ["thnhan301-IdeaPad-Gaming-3-15IMH05"]
+  },
+  "HS0020": {
+    "name": "HS0020",
+    "supervisor": "Ms. Hoa",
+    "devices": ["RASPBERRY_29"]
+  },
+  "OUTER": {
+    "name": "OUTER",
+    "supervisor": "Mr. Binh",
+    "devices": ["RASPBERRY_30"]
+  },
+  "TUBE": {
+    "name": "TUBE",
+    "supervisor": "Mr. Binh",
+    "devices": ["RASPBERRY_31"]
+  },
+  "CORE": {
+    "name": "CORE",
+    "supervisor": "Mr. Binh",
+    "devices": ["RASPBERRY_32"]
+  },
+  "VR": {
+    "name": "VR",
+    "supervisor": "Mr. Binh",
+    "devices": ["RASPBERRY_38"]
+  },
+  "SPOOL": {
+    "name": "SPOOL",
+    "supervisor": "Mr. Binh",
+    "devices": ["RASPBERRY_39"]
+  },
+  "MABUCHI": {
+    "name": "MABUCHI",
+    "supervisor": "Mr. Binh",
+    "devices": ["RASPBERRY_36"]
+  }
+}
