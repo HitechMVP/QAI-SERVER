@@ -1,4 +1,5 @@
-__pycache__
+__pycache__/*
 logs
 server_storage
 .env
+__pycache__
