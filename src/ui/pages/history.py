@@ -184,13 +184,20 @@ def history_page(device_id: str):
         media_view.clear()
         with media_view:
             if type == 'video' and item['video_url']:
+                # FIX: 
+                # 1. Thay đổi style thành width: 100%; height: 100%; object-fit: contain;
+                # 2. Điều này buộc video nằm gọn trong khung đen đã định sẵn kích thước
                 ui.html(f'''
-                    <video autoplay controls playsinline style="max-width: 100%; max-height: 100%; width: auto; height: auto;">
+                    <video autoplay controls playsinline 
+                           style="width: 100%; height: 100%; object-fit: contain; outline: none;">
                         <source src="{item['video_url']}" type="video/mp4">
+                        Trình duyệt của bạn không hỗ trợ thẻ video.
                     </video>
-                ''', sanitize=False)
+                ''')
             else:
-                ui.image(item['image_url']).classes('max-w-full max-h-full object-contain')
+                # Ảnh thì dùng NiceGUI component đã ổn rồi, nhưng thêm w-full h-full cho chắc chắn
+                ui.image(item['image_url']).classes('w-full h-full object-contain')
+        
         dialog.open()
 
     # --- LOGIC RENDER (KHÔNG ĐỔI LOGIC, CHỈ CHỈNH CLASS) ---
