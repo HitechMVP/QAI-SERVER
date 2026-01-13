@@ -36,7 +36,7 @@ def get_data_for_date(device_id, date_obj):
     img_dir = os.path.join(STORAGE_ROOT, device_id, 'images')
     vid_dir = os.path.join(STORAGE_ROOT, device_id, 'videos')
 
-    # 1. Load toàn bộ Video trong ngày vào dict
+
     video_map = {} 
     vid_pattern = os.path.join(vid_dir, f"evidence_{date_str_compact}_*.mp4")
     for v_path in glob.glob(vid_pattern):
@@ -49,27 +49,24 @@ def get_data_for_date(device_id, date_obj):
                 video_map[dt_vid] = f"/media/{device_id}/videos/{fname}"
         except: continue
 
-    # 2. Logic tìm Video khớp với Ảnh
+
     def find_matching_video(img_dt):
         best_url = None
-        # Chỉ tìm video trong khoảng 30s SAU KHI chụp ảnh
-        # Bạn có thể tăng số này lên nếu thời gian lưu video lâu hơn
+
         min_diff = 30.0 
         
         for vid_dt, url in video_map.items():
-            # Tính khoảng cách: Video - Ảnh
+
             diff = (vid_dt - img_dt).total_seconds()
             
-            # ĐIỀU KIỆN QUAN TRỌNG:
-            # 1. diff >= 0: Video phải diễn ra SAU hoặc CÙNG LÚC với ảnh
-            # 2. diff < min_diff: Lấy video gần nhất trong khoảng cho phép
+
             if 0 <= diff < min_diff:
                 min_diff = diff
                 best_url = url
                 
         return best_url
 
-    # 3. Gom nhóm dữ liệu
+
     grouped_slots = {i: [] for i in range(12)}
     img_pattern = os.path.join(img_dir, f"img_{date_str_compact}_*.jpg")
     img_files = sorted(glob.glob(img_pattern)) 
@@ -80,14 +77,14 @@ def get_data_for_date(device_id, date_obj):
             parts = fname.split('_')
             if len(parts) < 3: continue
             time_part = parts[2]
-            # Parse thời gian ảnh
+    
             dt = datetime.strptime(f"{date_str_compact}_{time_part}", "%Y%m%d_%H%M%S")
             
             slot_idx = dt.hour // 2
             
             grouped_slots[slot_idx].append({
                 'image_url': f"/media/{device_id}/images/{fname}",
-                'video_url': find_matching_video(dt), # Gọi hàm tìm kiếm mới
+                'video_url': find_matching_video(dt), 
                 'display_time': dt.strftime("%H:%M:%S"),
                 'raw_dt': dt
             })
@@ -103,12 +100,10 @@ def history_page(device_id: str):
         <style>
             body { background-color: #0f172a; color: #f1f5f9; margin: 0; padding: 0; }
             .q-date { background: #1e293b; color: white; width: 100% !important; }
-            /* Card ảnh */
             .history-card { 
                 border: 1px solid #334155; border-radius: 8px; overflow: hidden; position: relative; 
                 background: #1e293b;
             }
-            /* Hiệu ứng active cho biểu đồ */
             .bar-active { background-color: #eab308 !important; box-shadow: 0 0 10px rgba(234, 179, 8, 0.5); }
         </style>
     ''')
@@ -119,13 +114,8 @@ def history_page(device_id: str):
     }
     available_dates = get_available_dates(device_id)
 
-    # --- LAYOUT CHÍNH (Mobile: Cột dọc, PC: Hàng ngang) ---
-    # flex-col: Xếp dọc (mặc định cho mobile)
-    # md:flex-row: Xếp ngang (từ màn hình trung bình trở lên)
     with ui.element('div').classes('w-full min-h-screen flex flex-col md:flex-row bg-slate-900'):
         
-        # --- 1. SIDEBAR (Lịch & Thông tin) ---
-        # Mobile: w-full (full màn hình), PC: w-[320px] cố định
         with ui.column().classes('w-full md:w-[320px] bg-slate-900 border-b md:border-b-0 md:border-r border-slate-700 p-4 gap-4 flex-shrink-0 z-20'):
             
             # Header Sidebar
@@ -135,7 +125,7 @@ def history_page(device_id: str):
                 ui.label('LỊCH SỬ').classes('font-bold text-lg text-white')
                 ui.element('div').classes('w-8') # Spacer ảo để cân giữa chữ
 
-            # Calendar (Tự co giãn theo chiều rộng cha)
+            # Calendar 
             with ui.card().classes('w-full p-0 bg-transparent shadow-none'):
                 date_picker = ui.date(value=state['current_date'], on_change=lambda e: load_day_data(e.value)) \
                     .props(f'today-btn event-color="green" :events="{available_dates}" minimal flat square dark :locale={vn_locale}') \
@@ -146,30 +136,21 @@ def history_page(device_id: str):
                 lbl_date_display = ui.label('...').classes('text-base font-bold text-blue-400')
                 lbl_total_events = ui.label('Loading...').classes('text-xs text-slate-400')
 
-        # --- 2. CONTENT AREA (Biểu đồ & Danh sách ảnh) ---
-        # flex-1: Chiếm hết phần còn lại
+
         with ui.column().classes('flex-1 w-full h-[calc(100vh-80px)] md:h-screen overflow-hidden relative'):
             
-            # A. Biểu đồ (Cố định ở trên cùng của vùng Content)
-            # Mobile: Cao 100px, PC: Cao 128px (h-32)
+
             with ui.column().classes('w-full p-2 md:p-4 bg-slate-900/90 z-10 shrink-0 border-b border-slate-800'):
                 ui.label('Thống kê sự kiện (24h)').classes('text-xs text-slate-500 font-bold uppercase mb-1')
                 chart_container = ui.row().classes('w-full h-24 md:h-32 items-end gap-1 md:gap-2 justify-between')
 
-            # B. Gallery (Cuộn độc lập bên dưới biểu đồ)
             scroll_area = ui.column().classes('w-full flex-grow overflow-y-auto p-2 md:p-4 pb-20')
             with scroll_area:
                 lbl_gallery_title = ui.label('Chi tiết').classes('text-lg font-bold text-white mb-2 sticky top-0 bg-slate-900/80 backdrop-blur py-2 z-10 w-full')
                 
-                # Grid System Responsive:
-                # grid-cols-2: Mobile (2 cột)
-                # md:grid-cols-4: Tablet/PC nhỏ (4 cột)
-                # xl:grid-cols-5: PC to (5 cột)
                 gallery_grid = ui.element('div').classes('w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-4')
 
-    # --- DIALOG (POPUP) ---
     with ui.dialog().classes('z-50') as dialog:
-        # Mobile: w-full h-full (full màn hình), PC: có border radius
         with ui.card().classes('w-full h-full md:w-[90vw] md:h-[85vh] md:max-w-6xl p-0 bg-black flex flex-col gap-0 md:rounded-xl md:border md:border-gray-700'):
             
             # Toolbar
@@ -207,25 +188,16 @@ def history_page(device_id: str):
 
         with gallery_grid:
             for item in items:
-                # Card Wrapper
                 with ui.element('div').classes('history-card group cursor-pointer aspect-video relative hover:ring-2 ring-blue-500 transition-all'):
                     
-                    # Ảnh nền
                     img = ui.image(item['image_url']).classes('w-full h-full object-cover')
                     img.on('click', lambda _, i=item: show_media(i, 'image'))
 
-                    # Nếu có Video
                     if item['video_url']:
-                        # Nút Play overlay ở giữa
-                        # with ui.element('div').classes('absolute inset-0 flex items-center justify-center pointer-events-none bg-black/10 group-hover:bg-black/30 transition-colors'):
-                        #     ui.icon('play_circle', color='white').classes('text-3xl md:text-5xl opacity-80 drop-shadow-lg')
-                        
-                        # Nút mở Video riêng (góc phải dưới)
                         with ui.element('div').classes('absolute bottom-6 right-1 z-10'):
                              ui.button(icon='smart_display', on_click=lambda _, i=item: show_media(i, 'video')) \
                                 .props('round dense color=green-600 size=sm')
 
-                    # Footer thông tin (Time)
                     with ui.element('div').classes('absolute bottom-0 left-0 w-full bg-black/70 p-1 flex justify-between items-center backdrop-blur-[2px]'):
                         ui.label(item['display_time']).classes('text-[10px] md:text-xs font-mono font-bold text-white')
                         if item['video_url']:
@@ -239,26 +211,20 @@ def history_page(device_id: str):
         with chart_container:
             for s in range(12):
                 count = counts[s]
-                h_pct = max((count / max_val) * 100, 15) # Min height 15% để dễ ấn
+                h_pct = max((count / max_val) * 100, 15) 
                 
-                # Logic màu sắc
                 bg_color = 'bg-blue-600' if count > 0 else 'bg-slate-700'
                 active_class = 'bar-active' if s == selected_slot else ''
                 
-                # Cột Bar (Container)
                 with ui.column().classes('flex-1 h-full justify-end items-center gap-0 cursor-pointer group relative touch-manipulation') as col:
-                    # Số lượng (chỉ hiện nếu > 0)
                     if count > 0:
                         ui.label(str(count)).classes('text-[9px] font-bold text-white mb-0.5')
                     
-                    # Thanh Bar thực tế
                     bar = ui.element('div').classes(f'w-full rounded-t-sm {bg_color} {active_class} transition-all duration-300 opacity-80 group-hover:opacity-100')
                     bar.style(f'height: {h_pct}%;')
                     
-                    # Label giờ
                     ui.label(f'{s*2}h').classes('text-[8px] md:text-[10px] text-slate-400 mt-1')
                     
-                    # Click event
                     col.on('click', lambda _, idx=s: select_slot(idx))
 
     def select_slot(slot_idx):
