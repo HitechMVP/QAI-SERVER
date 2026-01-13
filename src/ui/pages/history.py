@@ -172,7 +172,9 @@ def history_page(device_id: str):
                     </video>
                 ''', sanitize=False)
             else:
-                ui.image(item['image_url']).classes('w-full h-full object-contain')
+                ui.image(item['image_url']) \
+                    .style('position: absolute; top: 0; left: 0; width: 100%; height: 100%;') \
+                    .props('fit=contain')
         dialog.open()
 
 
