@@ -70,10 +70,9 @@ def get_data_for_date(device_id, date_obj):
     # 2. Logic tìm Video khớp (tìm trong cả 2 map)
     def find_videos(img_dt):
         result = {'org': None, 'ann': None}
-        min_diff_org = 10
-        min_diff_ann = 10
+        min_diff_org = 30
+        min_diff_ann = 30
         
-        # Tìm Org
         for vid_dt, url in map_org.items():
             diff = (vid_dt - img_dt).total_seconds()
             if 0 <= diff < min_diff_org:
