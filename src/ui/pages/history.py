@@ -49,20 +49,25 @@ def get_data_for_date(device_id, date_obj):
                 video_map[dt_vid] = f"/media/{device_id}/videos/{fname}"
         except: continue
 
-
+    used_video_keys = set()
     def find_matching_video(img_dt):
         best_url = None
-
+        best_vid_dt = None  
         min_diff = 60.0
         
         for vid_dt, url in video_map.items():
+            if vid_dt in used_video_keys:
+                continue
 
             diff = (vid_dt - img_dt).total_seconds()
-            
 
             if 0 <= diff < min_diff:
                 min_diff = diff
                 best_url = url
+                best_vid_dt = vid_dt 
+                
+        if best_vid_dt is not None:
+            used_video_keys.add(best_vid_dt)
                 
         return best_url
 

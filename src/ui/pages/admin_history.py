@@ -35,60 +35,72 @@ def get_available_dates(device_id):
 def get_data_for_date(device_id, date_obj):
     date_str_compact = date_obj.strftime("%Y%m%d")
     
-    # Định nghĩa đường dẫn
     path_img = os.path.join(STORAGE_ROOT, device_id, 'images')
-    path_org = os.path.join(STORAGE_ROOT, device_id, 'videos')           # Video gốc
-    path_ann = os.path.join(STORAGE_ROOT, device_id, 'annotated_videos') # Video AI
+    path_org = os.path.join(STORAGE_ROOT, device_id, 'videos')           
+    path_ann = os.path.join(STORAGE_ROOT, device_id, 'annotated_videos') 
 
-    # --- HELPER: Load video map ---
     def load_video_map(folder_path, url_prefix):
         v_map = {}
         if not os.path.exists(folder_path): return v_map
         
-        # Pattern: evidence_*_YYYYMMDD_*.mp4 hoặc evidence_YYYYMMDD_*.mp4
         pattern = os.path.join(folder_path, f"evidence_*{date_str_compact}_*.mp4")
         
         for v_path in glob.glob(pattern):
             try:
                 fname = os.path.basename(v_path)
-                # Parse lấy thời gian. Tên file có thể là:
-                # 1. evidence_ORG_20231010_120000.mp4 (len split = 4, time ở idx 3)
-                # 2. evidence_20231010_120000.mp4 (len split = 3, time ở idx 2)
                 parts = fname.split('_')
-                time_str = parts[-1].split('.')[0] # Lấy phần cuối cùng (HHMMSS)
+                time_str = parts[-1].split('.')[0] 
                 
-                # Tạo datetime object cho video
                 dt_vid = datetime.strptime(f"{date_str_compact}_{time_str}", "%Y%m%d_%H%M%S")
                 v_map[dt_vid] = f"/media/{device_id}/{url_prefix}/{fname}"
             except: continue
         return v_map
 
-    # 1. Load 2 bản đồ video
     map_org = load_video_map(path_org, 'videos')
     map_ann = load_video_map(path_ann, 'annotated_videos')
 
-    # 2. Logic tìm Video khớp (tìm trong cả 2 map)
+    used_org_keys = set()
+    used_ann_keys = set()
+
     def find_videos(img_dt):
         result = {'org': None, 'ann': None}
-        min_diff_org = 120.0
-        min_diff_ann = 120.0
+        
+        best_org_dt = None
+        min_diff_org = 120.0 
         
         for vid_dt, url in map_org.items():
+            if vid_dt in used_org_keys: 
+                continue
+
             diff = (vid_dt - img_dt).total_seconds()
+            
             if 0 <= diff < min_diff_org:
                 min_diff_org = diff
                 result['org'] = url
+                best_org_dt = vid_dt
+
+        if best_org_dt:
+            used_org_keys.add(best_org_dt)
+
+        best_ann_dt = None
+        min_diff_ann = 120.0
         
-        # Tìm Ann
         for vid_dt, url in map_ann.items():
+            if vid_dt in used_ann_keys: 
+                continue
+
             diff = (vid_dt - img_dt).total_seconds()
+            
             if 0 <= diff < min_diff_ann:
                 min_diff_ann = diff
                 result['ann'] = url
+                best_ann_dt = vid_dt
+        
+        if best_ann_dt:
+            used_ann_keys.add(best_ann_dt)
                 
         return result
 
-    # 3. Gom nhóm dữ liệu
     grouped_slots = {i: [] for i in range(12)}
     img_pattern = os.path.join(path_img, f"img_{date_str_compact}_*.jpg")
     img_files = sorted(glob.glob(img_pattern)) 
@@ -97,20 +109,18 @@ def get_data_for_date(device_id, date_obj):
         try:
             fname = os.path.basename(f_path)
             parts = fname.split('_')
-            # img_YYYYMMDD_HHMMSS.jpg -> time ở parts[2]
             if len(parts) < 3: continue
             time_part = parts[2].split('.')[0]
             
             dt = datetime.strptime(f"{date_str_compact}_{time_part}", "%Y%m%d_%H%M%S")
             slot_idx = dt.hour // 2
             
-            # Lấy video URLs
             videos = find_videos(dt)
             
             grouped_slots[slot_idx].append({
                 'image_url': f"/media/{device_id}/images/{fname}",
-                'video_org': videos['org'], # URL Video gốc
-                'video_ann': videos['ann'], # URL Video AI
+                'video_org': videos['org'], 
+                'video_ann': videos['ann'], 
                 'display_time': dt.strftime("%H:%M:%S"),
                 'raw_dt': dt
             })
