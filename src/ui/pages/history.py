@@ -53,7 +53,7 @@ def get_data_for_date(device_id, date_obj):
     def find_matching_video(img_dt):
         best_url = None
 
-        min_diff = 30.0 
+        min_diff = 60.0
         
         for vid_dt, url in video_map.items():
 
