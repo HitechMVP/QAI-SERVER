@@ -8,7 +8,8 @@ from fastapi.responses import StreamingResponse
 from nicegui import ui
 
 from src.utils.logger import setup_logger
-from src.core.socket_manager import socket_manager
+from src.core.device_socket_manager import device_socket_manager
+from src.core.user_socket_manager import user_socket_manager
 from src.ui.pages import dashboard, device_detail, history, admin_history
 
 setup_logger(level=logging.INFO)
@@ -16,7 +17,10 @@ logger = logging.getLogger("ServerMain")
 
 app = FastAPI()
 
-app.mount("/socket.io", socket_manager.app)
+device_socket_manager.bind_user_socket(user_socket_manager)
+
+app.mount("/socket.io/device", device_socket_manager.app)
+app.mount("/socket.io/user", user_socket_manager.app)
 
 if not os.path.exists('server_storage'):
     os.makedirs('server_storage')
@@ -26,7 +30,7 @@ app.mount("/media", StaticFiles(directory="server_storage"), name="media")
 @app.get("/api/video_feed/{device_id}")
 async def video_feed(device_id: str):
     return StreamingResponse(
-        socket_manager.get_stream_generator(device_id),
+        device_socket_manager.get_stream_generator(device_id),
         media_type="multipart/x-mixed-replace; boundary=frame"
     )
 

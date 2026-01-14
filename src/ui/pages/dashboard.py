@@ -2,7 +2,7 @@ from nicegui import ui, app
 from datetime import datetime
 
 from src.core.factory_manager import factory_manager
-from src.core.socket_manager import socket_manager
+from src.core.device_socket_manager import device_socket_manager
 
 def format_last_seen(timestamp):
     if not timestamp:
@@ -15,7 +15,7 @@ def format_last_seen(timestamp):
 
 
 def render_device_card(device_id):
-    data = socket_manager.device_data.get(device_id, {})
+    data = device_socket_manager.device_data.get(device_id, {})
     raw_status = data.get('status', 'offline')
     last_seen = data.get('last_seen', 0)
     ip = data.get('configs', {}).get('ip', 'N/A') 
