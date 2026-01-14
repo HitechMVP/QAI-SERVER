@@ -8,7 +8,7 @@ from src.core.factory_manager import factory_manager
 
 logger = logging.getLogger("SocketManager")
 
-class SocketManager:
+class DeviceSocketManager:
     def __init__(self):
 
         self.sio = socketio.AsyncServer(
@@ -22,6 +22,8 @@ class SocketManager:
 
         self.connected_devices = {}   # Map: { sid: device_id }
         self.device_data = {}         # Map: { device_id: { 'frame': bytes, 'stats': dict, 'status': 'online' } }
+
+        self.user_socket = NotImplementedError
 
         self._register_handlers()
 
@@ -72,11 +74,18 @@ class SocketManager:
             device_id = data.get('id')
             image_bytes = data.get('image')
 
-            if device_id and image_bytes:
-                if device_id in self.device_data:
-                    self.device_data[device_id]['frame'] = image_bytes
-                    self.device_data[device_id]['status'] = 'online' 
-                    self.device_data[device_id]['last_seen'] = time.time()
+            if not device_id or not image_bytes:
+                return
+
+            if device_id not in self.device_data:
+                return
+            
+            self.device_data[device_id]['frame'] = image_bytes
+            self.device_data[device_id]['status'] = 'online' 
+            self.device_data[device_id]['last_seen'] = time.time()
+
+            if self.user_socket:
+                await self.user_socket.broadcast_frame(device_id, image_bytes)
 
         @self.sio.event
         async def telemetry(sid, data):
@@ -120,6 +129,9 @@ class SocketManager:
             await self.sio.emit('server_command', data, to=target_sid)
             return True
         return False
+    
+    def bind_user_socket(self, user_socket):
+        self.user_socket = user_socket
 
 
-socket_manager = SocketManager()
+device_socket_manager = DeviceSocketManager()

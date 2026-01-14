@@ -1,5 +1,5 @@
 from nicegui import ui, context, app
-from src.core.socket_manager import socket_manager
+from src.core.device_socket_manager import device_socket_manager
 import asyncio
 import time
 
@@ -11,7 +11,7 @@ async def send_command(device_id, cmd, payload=None, target_client=None):
         except RuntimeError:
             client = None
 
-    success = await socket_manager.send_command(device_id, cmd, payload)
+    success = await device_socket_manager.send_command(device_id, cmd, payload)
     
     if client:
         with client: 
@@ -45,7 +45,7 @@ ui.add_head_html('''
 ''')
 
 async def check_and_open_config(device_id):
-    device_data = socket_manager.device_data.get(device_id, {})
+    device_data = device_socket_manager.device_data.get(device_id, {})
     if device_data.get('status') != 'online':
         ui.notify(f"⚠️ Thiết bị {device_id} đang OFFLINE!", type='negative', position='top')
         return
@@ -92,7 +92,7 @@ async def check_and_open_config(device_id):
 
 def render_config_modal(device_id, client, is_admin=False):
 
-    device_info = socket_manager.device_data.get(device_id, {})
+    device_info = device_socket_manager.device_data.get(device_id, {})
     conf = device_info.get('configs', {}) 
     
     max_w = int(conf.get('frame_width', 640))
@@ -342,7 +342,7 @@ def render_config_modal(device_id, client, is_admin=False):
         dialog.open()
 
 async def check_and_reboot(device_id):
-    device_data = socket_manager.device_data.get(device_id, {})
+    device_data = device_socket_manager.device_data.get(device_id, {})
     if device_data.get('status') != 'online':
         ui.notify(f"⚠️ Thiết bị {device_id} đang OFFLINE. Không thể khởi động lại!", type='negative', position='top')
         return
@@ -394,7 +394,7 @@ async def check_and_reboot(device_id):
 def device_detail_page(device_id: str):
     ui.colors(primary='#3b82f6', secondary='#64748b', accent='#f59e0b', positive='#10b981')
     
-    device_data = socket_manager.device_data.get(device_id, {})
+    device_data = device_socket_manager.device_data.get(device_id, {})
     is_online = device_data.get('status') == 'online'
 
     with ui.column().classes('w-full h-[100dvh] bg-slate-50 overflow-hidden gap-0 relative'):
@@ -417,11 +417,32 @@ def device_detail_page(device_id: str):
         
         def render_video_stream():
             video_container.clear()
-            video_url = f"/api/video_feed/{device_id}?t={time.time()}"
             with video_container:
-                ui.html(f'<img src="{video_url}" style="width:100%; height:100%; object-fit:contain; pointer-events:none;"/>', sanitize=False) \
-                    .classes('w-full h-full select-none') 
-            
+                ui.html("""
+                    <img id="video" style="width:100%;height:100%;object-fit:contain;">
+                """, sanitize=False)
+
+                ui.run_javascript(f"""
+                    const socket = io("/", {{ 
+                        path: "/socket.io/user",
+                        transports: ['websocket', 'polling']
+                    }});
+
+                    socket.emit("join_device", "{device_id}");
+
+                    socket.on("video_frame", (data) => {{
+                        if (data.device_id !== "{device_id}") return;
+
+                        const imgElement = document.getElementById("video");
+                        if (imgElement) {{
+                            imgElement.src = "data:image/jpeg;base64," + data.image;
+                        }}
+                    }});
+                    socket.on("connect", () => {{
+                        console.log("JS: Connected to User Socket");
+                    }});
+                """)
+                            
                 ui.button(icon='refresh', on_click=render_video_stream) \
                     .props('round flat dense text-color=white') \
                     .classes('absolute top-2 right-2 bg-white/10 backdrop-blur-sm active:bg-white/20')
