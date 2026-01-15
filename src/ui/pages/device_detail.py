@@ -435,9 +435,22 @@ def device_detail_page(device_id: str):
 
                         const imgElement = document.getElementById("video");
                         if (imgElement) {{
-                            imgElement.src = "data:image/jpeg;base64," + data.image;
+                            // 1. Dọn dẹp bộ nhớ RAM của frame cũ (QUAN TRỌNG NHẤT)
+                            if (imgElement.src.startsWith("blob:")) {{
+                                URL.revokeObjectURL(imgElement.src);
+                            }}
+
+                            // 2. data.image bây giờ là ArrayBuffer.
+                            // Tạo Blob từ dữ liệu nhị phân.
+                            // Lưu ý: Nếu cam bạn là PNG thì đổi 'image/jpeg' thành 'image/png'
+                            const blob = new Blob([data.image], {{ type: 'image/jpeg' }});
+
+                            // 3. Tạo đường dẫn ảo và gán vào ảnh
+                            const url = URL.createObjectURL(blob);
+                            imgElement.src = url;
                         }}
                     }});
+
                     socket.on("connect", () => {{
                         console.log("JS: Connected to User Socket");
                     }});

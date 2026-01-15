@@ -33,12 +33,11 @@ class UserSocketManager:
             await self.sio.leave_room(sid, f"device_{device_id}")
 
     async def broadcast_frame(self, device_id: str, image_bytes: bytes):
-        base64_str = base64.b64encode(image_bytes).decode('utf-8')
         await self.sio.emit(
             "video_frame",
             {
                 "device_id": device_id,
-                "image": base64_str 
+                "image": image_bytes
             },
             room=f"device_{device_id}"
         )
