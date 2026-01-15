@@ -418,9 +418,8 @@ def device_detail_page(device_id: str):
         def render_video_stream():
             video_container.clear()
             with video_container:
-                ui.html("""
-                    <img id="video" style="width:100%;height:100%;object-fit:contain;">
-                """, sanitize=False)
+                ui.html(f'<img id="video"  style="width:100%; height:100%; object-fit:contain; pointer-events:none;"/>', sanitize=False) \
+                    .classes('w-full h-full select-none')
 
                 ui.run_javascript(f"""
                     const socket = io("/", {{ 
