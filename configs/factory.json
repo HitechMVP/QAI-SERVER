@@ -2,41 +2,41 @@
   "HS0010": {
     "name": "HS0010",
     "supervisor": "Mr. Binh",
-    "devices": ["rp34"]
+    "devices": ["qaeye34"]
   },
   "HS0020": {
     "name": "HS0020",
     "supervisor": "Ms. Binh",
-    "devices": ["rp29"]
+    "devices": ["qaeye29"]
   },
   "OUTER": {
     "name": "OUTER",
     "supervisor": "Mr. Binh",
-    "devices": ["rp30"]
+    "devices": ["qaeye30"]
   },
   "TUBE": {
     "name": "TUBE",
     "supervisor": "Mr. Binh",
-    "devices": ["rp31"]
+    "devices": ["qaeye31"]
   },
   "CORE": {
     "name": "CORE",
     "supervisor": "Mr. Binh",
-    "devices": ["rp32"]
+    "devices": ["qaeye32"]
   },
   "VR": {
     "name": "VR",
     "supervisor": "Mr. Binh",
-    "devices": ["rp_38"]
+    "devices": ["qaeye38"]
   },
   "SPOOL": {
     "name": "SPOOL",
     "supervisor": "Mr. Binh",
-    "devices": ["rp39"]
+    "devices": ["qaeye39"]
   },
   "MABUCHI": {
     "name": "MABUCHI",
     "supervisor": "Mr. Binh",
-    "devices": ["rp36"]
+    "devices": ["qaeye36"]
   }
 }
