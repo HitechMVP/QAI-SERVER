@@ -26,6 +26,7 @@ if not os.path.exists('server_storage'):
     os.makedirs('server_storage')
 
 app.mount("/media", StaticFiles(directory="server_storage"), name="media")
+app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 
 @app.get("/api/video_feed/{device_id}")
 async def video_feed(device_id: str):
@@ -88,9 +89,10 @@ async def upload_file(
 
 ui.run_with(
     app, 
-    title="Q-AEye Dashboard", 
+    title="ORO Dashboard", 
+    favicon="assets/oro.png"
 )
 
 if __name__ == '__main__':
-    logger.info("🚀 Server starting on http://0.0.0.0:8080")
+    logger.info("🚀 Server starting on http://0.0.0.0:80")
     uvicorn.run(app, host='0.0.0.0', port=80, log_level="warning")

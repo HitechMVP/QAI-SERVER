@@ -124,7 +124,7 @@ def dashboard():
             ):
                 ui.icon('domain', color='white').classes('text-[20px]')
             with ui.column().classes('gap-0'):
-                ui.label('Q-AEye MONITOR').classes(
+                ui.label('ORO MONITOR').classes(
                     'text-sm font-extrabold tracking-tight leading-none'
                 )
                 ui.label('Real-time Dashboard').classes(
@@ -206,7 +206,7 @@ def dashboard():
         'bg-[#0B1120]/80 backdrop-blur-md h-10 w-full flex items-center justify-center border-t border-white/5'
     ):
         with ui.row().classes('items-center gap-3'):
-            ui.label('Q-AEye INTELLIGENCE').classes('text-[10px] font-bold text-slate-400 tracking-wider leading-none')
+            ui.label('ORO INTELLIGENCE').classes('text-[10px] font-bold text-slate-400 tracking-wider leading-none')
             
             ui.element('div').classes('w-1 h-1 rounded-full bg-slate-600')
             
