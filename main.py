@@ -93,4 +93,4 @@ ui.run_with(
 
 if __name__ == '__main__':
     logger.info("🚀 Server starting on http://0.0.0.0:8080")
-    uvicorn.run(app, host='0.0.0.0', port=8080, log_level="warning")
+    uvicorn.run(app, host='0.0.0.0', port=80, log_level="warning")
